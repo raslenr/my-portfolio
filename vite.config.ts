@@ -3,7 +3,8 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 
 export default defineConfig(({ mode }) => ({
-  base: mode === "production" ? "/my-portfolio/" : "/", // ✅ works locally & on GitHub
+  // ⚠️ هنا نستخدم "/" بدل "/my-portfolio/" لأن Vercel ينشر المشروع على الجذر
+  base: "/",
   plugins: [react()],
   resolve: {
     alias: {
@@ -15,7 +16,7 @@ export default defineConfig(({ mode }) => ({
     open: true,
   },
   build: {
-    outDir: "dist",
+    outDir: "dist", // المجلد النهائي للبناء
     sourcemap: false,
   },
 }));
