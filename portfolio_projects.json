@@ -1,0 +1,200 @@
+{
+  "portfolio_info": {
+    "owner": "Raslen Lakrach",
+    "last_updated": "2025-09-05T14:53:40.484806",
+    "total_projects": 8
+  },
+  "categories": {
+    "graphic_design": {
+      "name": "Graphic Design",
+      "description": "Logo designs, branding, and visual identity projects",
+      "projects": [
+        {
+          "id": "fashion_industry_logo_mockup",
+          "title": "Fashion Industry Logo Mockup",
+          "filename": "Fashion Industry Logo Mockup.png",
+          "file_path": "/workspace/uploads/work/Fashion Industry Logo Mockup.png",
+          "relative_path": "uploads/work/Fashion Industry Logo Mockup.png",
+          "file_size": 1197711,
+          "file_type": "PNG Image",
+          "created_date": "2025-09-05T14:52:33",
+          "description": "Professional logo design for fashion industry with modern branding approach",
+          "tags": [
+            "logo design",
+            "fashion",
+            "branding",
+            "mockup"
+          ],
+          "industry": "Fashion",
+          "category": "Graphic Design",
+          "service_type": "Logo Design"
+        },
+        {
+          "id": "finance_industry_logo_mockup",
+          "title": "Finance Industry Logo Mockup",
+          "filename": "Finance Industry Logo Mockup.png",
+          "file_path": "/workspace/uploads/work/Finance Industry Logo Mockup.png",
+          "relative_path": "uploads/work/Finance Industry Logo Mockup.png",
+          "file_size": 1323655,
+          "file_type": "PNG Image",
+          "created_date": "2025-09-05T14:52:33",
+          "description": "Corporate logo design for finance industry with professional aesthetic",
+          "tags": [
+            "logo design",
+            "finance",
+            "corporate",
+            "mockup"
+          ],
+          "industry": "Finance",
+          "category": "Graphic Design",
+          "service_type": "Logo Design"
+        },
+        {
+          "id": "fitness_industry_logo_mockup",
+          "title": "Fitness Industry Logo Mockup",
+          "filename": "Fitness Industry Logo Mockup.png",
+          "file_path": "/workspace/uploads/work/Fitness Industry Logo Mockup.png",
+          "relative_path": "uploads/work/Fitness Industry Logo Mockup.png",
+          "file_size": 1116093,
+          "file_type": "PNG Image",
+          "created_date": "2025-09-05T14:52:33",
+          "description": "Dynamic logo design for fitness industry with energetic branding",
+          "tags": [
+            "logo design",
+            "fitness",
+            "sports",
+            "mockup"
+          ],
+          "industry": "Fitness",
+          "category": "Graphic Design",
+          "service_type": "Logo Design"
+        },
+        {
+          "id": "food_industry_logo_mockup",
+          "title": "Food Industry Logo Mockup",
+          "filename": "Food Industry Logo Mockup.png",
+          "file_path": "/workspace/uploads/work/Food Industry Logo Mockup.png",
+          "relative_path": "uploads/work/Food Industry Logo Mockup.png",
+          "file_size": 1128751,
+          "file_type": "PNG Image",
+          "created_date": "2025-09-05T14:52:33",
+          "description": "Creative logo design for food industry with appetizing visual appeal",
+          "tags": [
+            "logo design",
+            "food",
+            "restaurant",
+            "mockup"
+          ],
+          "industry": "Food & Beverage",
+          "category": "Graphic Design",
+          "service_type": "Logo Design"
+        },
+        {
+          "id": "tech_logo_design_mockup",
+          "title": "Tech Logo Design Mockup",
+          "filename": "Tech Logo Design Mockup.png",
+          "file_path": "/workspace/uploads/work/Tech Logo Design Mockup.png",
+          "relative_path": "uploads/work/Tech Logo Design Mockup.png",
+          "file_size": 1058467,
+          "file_type": "PNG Image",
+          "created_date": "2025-09-05T14:52:33",
+          "description": "Modern logo design for technology company with innovative branding",
+          "tags": [
+            "logo design",
+            "technology",
+            "modern",
+            "mockup"
+          ],
+          "industry": "Technology",
+          "category": "Graphic Design",
+          "service_type": "Logo Design"
+        }
+      ]
+    },
+    "social_media_marketing": {
+      "name": "Social Media Marketing",
+      "description": "Social media posts, ads, and marketing templates",
+      "projects": [
+        {
+          "id": "facebook_carousel_ad_-_fashion_collection",
+          "title": "Facebook Carousel Ad - Fashion Collection",
+          "filename": "Facebook Carousel Ad - Fashion Collection.png",
+          "file_path": "/workspace/uploads/work/Facebook Carousel Ad - Fashion Collection.png",
+          "relative_path": "uploads/work/Facebook Carousel Ad - Fashion Collection.png",
+          "file_size": 838031,
+          "file_type": "PNG Image",
+          "created_date": "2025-09-05T14:52:33",
+          "description": "Engaging Facebook carousel ad design for fashion collection showcase",
+          "tags": [
+            "facebook ads",
+            "carousel",
+            "fashion",
+            "social media"
+          ],
+          "platform": "Facebook",
+          "ad_type": "Carousel Ad",
+          "category": "Social Media Marketing",
+          "service_type": "Social Media Design"
+        },
+        {
+          "id": "facebook_single_image_ad_-_tech_product",
+          "title": "Facebook Single Image Ad - Tech Product",
+          "filename": "Facebook Single Image Ad - Tech Product.png",
+          "file_path": "/workspace/uploads/work/Facebook Single Image Ad - Tech Product.png",
+          "relative_path": "uploads/work/Facebook Single Image Ad - Tech Product.png",
+          "file_size": 906013,
+          "file_type": "PNG Image",
+          "created_date": "2025-09-05T14:52:33",
+          "description": "High-converting Facebook single image ad for tech product promotion",
+          "tags": [
+            "facebook ads",
+            "single image",
+            "tech",
+            "product promotion"
+          ],
+          "platform": "Facebook",
+          "ad_type": "Single Image Ad",
+          "category": "Social Media Marketing",
+          "service_type": "Social Media Design"
+        },
+        {
+          "id": "linkedin_industry_insight_template",
+          "title": "LinkedIn Industry Insight Template",
+          "filename": "LinkedIn Industry Insight Template.png",
+          "file_path": "/workspace/uploads/work/LinkedIn Industry Insight Template.png",
+          "relative_path": "uploads/work/LinkedIn Industry Insight Template.png",
+          "file_size": 887060,
+          "file_type": "PNG Image",
+          "created_date": "2025-09-05T14:52:33",
+          "description": "Professional LinkedIn industry insight template for business engagement",
+          "tags": [
+            "linkedin",
+            "template",
+            "industry insights",
+            "business"
+          ],
+          "platform": "LinkedIn",
+          "ad_type": "Content Template",
+          "category": "Social Media Marketing",
+          "service_type": "Social Media Design"
+        }
+      ]
+    }
+  },
+  "statistics": {
+    "graphic_design_projects": 5,
+    "social_media_projects": 3,
+    "total_file_size": 8455781,
+    "industries_covered": [
+      "Fitness",
+      "Food & Beverage",
+      "Finance",
+      "Fashion",
+      "Technology"
+    ],
+    "platforms_covered": [
+      "LinkedIn",
+      "Facebook"
+    ]
+  }
+}
