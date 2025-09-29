@@ -238,7 +238,7 @@ export default function Contact() {
                 <div className="flex space-x-4">
                   {[
                     { name: 'LinkedIn', url: '#' },
-                    { name: 'Behance', url: '#' },
+                    { name: 'Facebook', url: 'https://www.facebook.com/raslen.lakrach.2025/' },
                     { name: 'instagram', url: 'https://www.instagram.com/lakrachraslen/' },
                     { name: 'Dribbble', url: '#' }
                   ].map((social, index) => (
