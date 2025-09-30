@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Search, Filter, Eye, Edit, Trash2, Plus, Download } from 'lucide-react';
+import { ArrowLeft, Search, Eye, Trash2, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
+import { supabase } from '@/lib/supabaseClient';
 
 interface OrderData {
   id: string;
@@ -39,7 +40,6 @@ const Admin = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
 
-  // Simple authentication - in production, use proper auth
   const adminPassword = 'raslen123';
 
   useEffect(() => {
@@ -70,16 +70,19 @@ const Admin = () => {
     setPassword('');
   };
 
-  const loadOrders = () => {
-    const storedOrders = JSON.parse(localStorage.getItem('portfolio_orders') || '[]');
-    setOrders(storedOrders.sort((a: OrderData, b: OrderData) => 
-      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    ));
+  // Fetch orders from Supabase
+  const loadOrders = async () => {
+    const { data, error } = await supabase
+      .from('orders')
+      .select('*')
+      .order('createdAt', { ascending: false });
+
+    if (error) console.error(error);
+    else setOrders(data as OrderData[]);
   };
 
   const filterOrders = () => {
     let filtered = orders;
-
     if (searchTerm) {
       filtered = filtered.filter(order => 
         order.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -88,41 +91,47 @@ const Admin = () => {
         order.projectTitle.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
-
     if (statusFilter !== 'all') {
       filtered = filtered.filter(order => order.status === statusFilter);
     }
-
     if (serviceFilter !== 'all') {
-      filtered = filtered.filter(order => 
-        order.service.toLowerCase().includes(serviceFilter.toLowerCase())
-      );
+      filtered = filtered.filter(order => order.service.toLowerCase() === serviceFilter.toLowerCase());
     }
-
     setFilteredOrders(filtered);
   };
 
-  const updateOrderStatus = (orderId: string, newStatus: 'new' | 'in-progress' | 'completed') => {
-    const updatedOrders = orders.map(order => 
-      order.id === orderId ? { ...order, status: newStatus } : order
-    );
-    setOrders(updatedOrders);
-    localStorage.setItem('portfolio_orders', JSON.stringify(updatedOrders));
+  // Update order status in Supabase
+  const updateOrderStatus = async (orderId: string, newStatus: 'new' | 'in-progress' | 'completed') => {
+    const { error } = await supabase
+      .from('orders')
+      .update({ status: newStatus })
+      .eq('id', orderId);
+
+    if (error) console.error(error);
+    else loadOrders();
   };
 
-  const updateOrderNotes = (orderId: string, notes: string) => {
-    const updatedOrders = orders.map(order => 
-      order.id === orderId ? { ...order, notes } : order
-    );
-    setOrders(updatedOrders);
-    localStorage.setItem('portfolio_orders', JSON.stringify(updatedOrders));
+  // Update order notes in Supabase
+  const updateOrderNotes = async (orderId: string, notes: string) => {
+    const { error } = await supabase
+      .from('orders')
+      .update({ notes })
+      .eq('id', orderId);
+
+    if (error) console.error(error);
+    else loadOrders();
   };
 
-  const deleteOrder = (orderId: string) => {
+  // Delete order from Supabase
+  const deleteOrder = async (orderId: string) => {
     if (confirm('Are you sure you want to delete this order?')) {
-      const updatedOrders = orders.filter(order => order.id !== orderId);
-      setOrders(updatedOrders);
-      localStorage.setItem('portfolio_orders', JSON.stringify(updatedOrders));
+      const { error } = await supabase
+        .from('orders')
+        .delete()
+        .eq('id', orderId);
+
+      if (error) console.error(error);
+      else loadOrders();
     }
   };
 
@@ -215,25 +224,19 @@ const Admin = () => {
           </Card>
           <Card className="bg-gray-900 border-gray-800">
             <CardContent className="p-6">
-              <div className="text-2xl font-bold text-blue-400">
-                {orders.filter(o => o.status === 'new').length}
-              </div>
+              <div className="text-2xl font-bold text-blue-400">{orders.filter(o => o.status === 'new').length}</div>
               <p className="text-gray-400">New Orders</p>
             </CardContent>
           </Card>
           <Card className="bg-gray-900 border-gray-800">
             <CardContent className="p-6">
-              <div className="text-2xl font-bold text-yellow-400">
-                {orders.filter(o => o.status === 'in-progress').length}
-              </div>
+              <div className="text-2xl font-bold text-yellow-400">{orders.filter(o => o.status === 'in-progress').length}</div>
               <p className="text-gray-400">In Progress</p>
             </CardContent>
           </Card>
           <Card className="bg-gray-900 border-gray-800">
             <CardContent className="p-6">
-              <div className="text-2xl font-bold text-green-400">
-                {orders.filter(o => o.status === 'completed').length}
-              </div>
+              <div className="text-2xl font-bold text-green-400">{orders.filter(o => o.status === 'completed').length}</div>
               <p className="text-gray-400">Completed</p>
             </CardContent>
           </Card>
@@ -315,7 +318,7 @@ const Admin = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredOrders.map((order) => (
+                  {filteredOrders.map(order => (
                     <tr key={order.id} className="border-b border-gray-800 hover:bg-gray-800">
                       <td className="py-3 px-4 text-gray-300 font-mono text-sm">{order.id}</td>
                       <td className="py-3 px-4">
@@ -332,9 +335,7 @@ const Admin = () => {
                           {order.status.replace('-', ' ')}
                         </Badge>
                       </td>
-                      <td className="py-3 px-4 text-gray-400">
-                        {new Date(order.createdAt).toLocaleDateString()}
-                      </td>
+                      <td className="py-3 px-4 text-gray-400">{new Date(order.createdAt).toLocaleDateString()}</td>
                       <td className="py-3 px-4">
                         <div className="flex space-x-2">
                           <Dialog>
@@ -351,9 +352,7 @@ const Admin = () => {
                             <DialogContent className="bg-gray-900 border-gray-800 text-white max-w-2xl">
                               <DialogHeader>
                                 <DialogTitle>Order Details - {selectedOrder?.id}</DialogTitle>
-                                <DialogDescription>
-                                  Complete order information and management
-                                </DialogDescription>
+                                <DialogDescription>Complete order information and management</DialogDescription>
                               </DialogHeader>
                               {selectedOrder && (
                                 <div className="space-y-4">
@@ -375,17 +374,14 @@ const Admin = () => {
                                       <p className="text-gray-300">{selectedOrder.company || 'N/A'}</p>
                                     </div>
                                   </div>
-                                  
                                   <div>
                                     <Label className="text-white">Project Title</Label>
                                     <p className="text-gray-300">{selectedOrder.projectTitle}</p>
                                   </div>
-                                  
                                   <div>
                                     <Label className="text-white">Requirements</Label>
                                     <p className="text-gray-300">{selectedOrder.requirements}</p>
                                   </div>
-                                  
                                   <div className="grid grid-cols-2 gap-4">
                                     <div>
                                       <Label className="text-white">Timeline</Label>
@@ -396,7 +392,6 @@ const Admin = () => {
                                       <p className="text-gray-300">{selectedOrder.paymentMethod}</p>
                                     </div>
                                   </div>
-                                  
                                   <div>
                                     <Label className="text-white">Status</Label>
                                     <Select 
@@ -413,7 +408,6 @@ const Admin = () => {
                                       </SelectContent>
                                     </Select>
                                   </div>
-                                  
                                   <div>
                                     <Label className="text-white">Notes</Label>
                                     <Textarea
@@ -427,7 +421,6 @@ const Admin = () => {
                               )}
                             </DialogContent>
                           </Dialog>
-                          
                           <Button 
                             size="sm" 
                             variant="destructive"
@@ -441,7 +434,6 @@ const Admin = () => {
                   ))}
                 </tbody>
               </table>
-              
               {filteredOrders.length === 0 && (
                 <div className="text-center py-8 text-gray-400">
                   No orders found matching your criteria.
