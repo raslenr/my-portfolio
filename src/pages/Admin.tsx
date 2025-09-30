@@ -1,15 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Search, Eye, Trash2, Download } from 'lucide-react';
+import { ArrowLeft, Search, Filter, Eye, Edit, Trash2, Plus, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
-import { supabase } from '@/lib/supabaseClient'; // تأكد أن المسار صحيح
 
 interface OrderData {
   id: string;
@@ -20,8 +19,8 @@ interface OrderData {
   timeline: string;
   name: string;
   email: string;
-  phone?: string;
-  company?: string;
+  phone: string;
+  company: string;
   paymentMethod: string;
   price: number;
   status: 'new' | 'in-progress' | 'completed';
@@ -40,13 +39,14 @@ const Admin = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
 
+  // Simple authentication - in production, use proper auth
   const adminPassword = 'raslen123';
 
   useEffect(() => {
     const authStatus = localStorage.getItem('admin_authenticated');
     if (authStatus === 'true') {
       setIsAuthenticated(true);
-      fetchOrders();
+      loadOrders();
     }
   }, []);
 
@@ -58,7 +58,7 @@ const Admin = () => {
     if (password === adminPassword) {
       setIsAuthenticated(true);
       localStorage.setItem('admin_authenticated', 'true');
-      fetchOrders();
+      loadOrders();
     } else {
       alert('Invalid password');
     }
@@ -70,62 +70,66 @@ const Admin = () => {
     setPassword('');
   };
 
-  const fetchOrders = async () => {
-    const { data, error } = await supabase
-      .from('orders')
-      .select('*')
-      .order('createdAt', { ascending: false });
-
-    if (error) console.error(error);
-    else setOrders(data as OrderData[]);
+  const loadOrders = () => {
+    const storedOrders = JSON.parse(localStorage.getItem('portfolio_orders') || '[]');
+    setOrders(storedOrders.sort((a: OrderData, b: OrderData) => 
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    ));
   };
 
   const filterOrders = () => {
     let filtered = orders;
+
     if (searchTerm) {
-      filtered = filtered.filter(order =>
+      filtered = filtered.filter(order => 
         order.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         order.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
         order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
         order.projectTitle.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
-    if (statusFilter !== 'all') filtered = filtered.filter(order => order.status === statusFilter);
-    if (serviceFilter !== 'all') filtered = filtered.filter(order => order.service.toLowerCase() === serviceFilter.toLowerCase());
+
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(order => order.status === statusFilter);
+    }
+
+    if (serviceFilter !== 'all') {
+      filtered = filtered.filter(order => 
+        order.service.toLowerCase().includes(serviceFilter.toLowerCase())
+      );
+    }
+
     setFilteredOrders(filtered);
   };
 
-  const updateOrderStatus = async (orderId: string, newStatus: 'new' | 'in-progress' | 'completed') => {
-    const { error } = await supabase
-      .from('orders')
-      .update({ status: newStatus })
-      .eq('id', orderId);
-
-    if (error) console.error(error);
-    else fetchOrders();
+  const updateOrderStatus = (orderId: string, newStatus: 'new' | 'in-progress' | 'completed') => {
+    const updatedOrders = orders.map(order => 
+      order.id === orderId ? { ...order, status: newStatus } : order
+    );
+    setOrders(updatedOrders);
+    localStorage.setItem('portfolio_orders', JSON.stringify(updatedOrders));
   };
 
-  const updateOrderNotes = async (orderId: string, notes: string) => {
-    const { error } = await supabase
-      .from('orders')
-      .update({ notes })
-      .eq('id', orderId);
-
-    if (error) console.error(error);
-    else fetchOrders();
+  const updateOrderNotes = (orderId: string, notes: string) => {
+    const updatedOrders = orders.map(order => 
+      order.id === orderId ? { ...order, notes } : order
+    );
+    setOrders(updatedOrders);
+    localStorage.setItem('portfolio_orders', JSON.stringify(updatedOrders));
   };
 
-  const deleteOrder = async (orderId: string) => {
-    if (!confirm('Are you sure you want to delete this order?')) return;
-    const { error } = await supabase.from('orders').delete().eq('id', orderId);
-    if (error) console.error(error);
-    else fetchOrders();
+  const deleteOrder = (orderId: string) => {
+    if (confirm('Are you sure you want to delete this order?')) {
+      const updatedOrders = orders.filter(order => order.id !== orderId);
+      setOrders(updatedOrders);
+      localStorage.setItem('portfolio_orders', JSON.stringify(updatedOrders));
+    }
   };
 
   const exportOrders = () => {
     const dataStr = JSON.stringify(orders, null, 2);
-    const blob = new Blob([dataStr], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
     const link = document.createElement('a');
     link.href = url;
     link.download = `orders_${new Date().toISOString().split('T')[0]}.json`;
@@ -152,10 +156,25 @@ const Admin = () => {
           <CardContent className="space-y-4">
             <div>
               <Label htmlFor="password" className="text-white">Password</Label>
-              <Input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} className="bg-gray-800 border-gray-700 text-white" onKeyPress={e => e.key === 'Enter' && handleLogin()} />
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="bg-gray-800 border-gray-700 text-white"
+                onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
+              />
             </div>
-            <Button onClick={handleLogin} className="w-full bg-yellow-400 text-black hover:bg-yellow-500">Login</Button>
-            <Button onClick={() => navigate('/')} variant="outline" className="w-full border-gray-700 text-white hover:bg-gray-800">Back to Portfolio</Button>
+            <Button onClick={handleLogin} className="w-full bg-yellow-400 text-black hover:bg-yellow-500">
+              Login
+            </Button>
+            <Button 
+              onClick={() => navigate('/')} 
+              variant="outline" 
+              className="w-full border-gray-700 text-white hover:bg-gray-800"
+            >
+              Back to Portfolio
+            </Button>
           </CardContent>
         </Card>
       </div>
@@ -168,7 +187,11 @@ const Admin = () => {
       <header className="border-b border-gray-800 px-4 py-6">
         <div className="container mx-auto flex justify-between items-center">
           <div>
-            <Button variant="ghost" className="text-white hover:text-yellow-400 mb-4" onClick={() => navigate('/')}>
+            <Button 
+              variant="ghost" 
+              className="text-white hover:text-yellow-400 mb-4"
+              onClick={() => navigate('/')}
+            >
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Portfolio
             </Button>
@@ -182,7 +205,7 @@ const Admin = () => {
       </header>
 
       <div className="container mx-auto px-4 py-8">
-        {/* Stats */}
+        {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <Card className="bg-gray-900 border-gray-800">
             <CardContent className="p-6">
@@ -192,19 +215,25 @@ const Admin = () => {
           </Card>
           <Card className="bg-gray-900 border-gray-800">
             <CardContent className="p-6">
-              <div className="text-2xl font-bold text-blue-400">{orders.filter(o => o.status === 'new').length}</div>
+              <div className="text-2xl font-bold text-blue-400">
+                {orders.filter(o => o.status === 'new').length}
+              </div>
               <p className="text-gray-400">New Orders</p>
             </CardContent>
           </Card>
           <Card className="bg-gray-900 border-gray-800">
             <CardContent className="p-6">
-              <div className="text-2xl font-bold text-yellow-400">{orders.filter(o => o.status === 'in-progress').length}</div>
+              <div className="text-2xl font-bold text-yellow-400">
+                {orders.filter(o => o.status === 'in-progress').length}
+              </div>
               <p className="text-gray-400">In Progress</p>
             </CardContent>
           </Card>
           <Card className="bg-gray-900 border-gray-800">
             <CardContent className="p-6">
-              <div className="text-2xl font-bold text-green-400">{orders.filter(o => o.status === 'completed').length}</div>
+              <div className="text-2xl font-bold text-green-400">
+                {orders.filter(o => o.status === 'completed').length}
+              </div>
               <p className="text-gray-400">Completed</p>
             </CardContent>
           </Card>
@@ -218,9 +247,15 @@ const Admin = () => {
                 <Label className="text-white">Search</Label>
                 <div className="relative">
                   <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <Input placeholder="Search orders..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10 bg-gray-800 border-gray-700 text-white" />
+                  <Input
+                    placeholder="Search orders..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10 bg-gray-800 border-gray-700 text-white"
+                  />
                 </div>
               </div>
+              
               <div>
                 <Label className="text-white">Status</Label>
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -235,6 +270,7 @@ const Admin = () => {
                   </SelectContent>
                 </Select>
               </div>
+              
               <div>
                 <Label className="text-white">Service</Label>
                 <Select value={serviceFilter} onValueChange={setServiceFilter}>
@@ -248,9 +284,11 @@ const Admin = () => {
                   </SelectContent>
                 </Select>
               </div>
+              
               <div className="flex items-end">
                 <Button onClick={exportOrders} variant="outline" className="border-gray-700 text-white">
-                  <Download className="mr-2 h-4 w-4" /> Export
+                  <Download className="mr-2 h-4 w-4" />
+                  Export
                 </Button>
               </div>
             </div>
@@ -294,19 +332,28 @@ const Admin = () => {
                           {order.status.replace('-', ' ')}
                         </Badge>
                       </td>
-                      <td className="py-3 px-4 text-gray-400">{new Date(order.createdAt).toLocaleDateString()}</td>
+                      <td className="py-3 px-4 text-gray-400">
+                        {new Date(order.createdAt).toLocaleDateString()}
+                      </td>
                       <td className="py-3 px-4">
                         <div className="flex space-x-2">
                           <Dialog>
                             <DialogTrigger asChild>
-                              <Button size="sm" variant="outline" className="border-gray-700 text-white" onClick={() => setSelectedOrder(order)}>
+                              <Button 
+                                size="sm" 
+                                variant="outline" 
+                                className="border-gray-700 text-white"
+                                onClick={() => setSelectedOrder(order)}
+                              >
                                 <Eye className="h-4 w-4" />
                               </Button>
                             </DialogTrigger>
                             <DialogContent className="bg-gray-900 border-gray-800 text-white max-w-2xl">
                               <DialogHeader>
                                 <DialogTitle>Order Details - {selectedOrder?.id}</DialogTitle>
-                                <DialogDescription>Complete order information and management</DialogDescription>
+                                <DialogDescription>
+                                  Complete order information and management
+                                </DialogDescription>
                               </DialogHeader>
                               {selectedOrder && (
                                 <div className="space-y-4">
@@ -328,17 +375,17 @@ const Admin = () => {
                                       <p className="text-gray-300">{selectedOrder.company || 'N/A'}</p>
                                     </div>
                                   </div>
-
+                                  
                                   <div>
                                     <Label className="text-white">Project Title</Label>
                                     <p className="text-gray-300">{selectedOrder.projectTitle}</p>
                                   </div>
-
+                                  
                                   <div>
                                     <Label className="text-white">Requirements</Label>
                                     <p className="text-gray-300">{selectedOrder.requirements}</p>
                                   </div>
-
+                                  
                                   <div className="grid grid-cols-2 gap-4">
                                     <div>
                                       <Label className="text-white">Timeline</Label>
@@ -349,10 +396,13 @@ const Admin = () => {
                                       <p className="text-gray-300">{selectedOrder.paymentMethod}</p>
                                     </div>
                                   </div>
-
+                                  
                                   <div>
                                     <Label className="text-white">Status</Label>
-                                    <Select value={selectedOrder.status} onValueChange={(value) => updateOrderStatus(selectedOrder.id, value as any)}>
+                                    <Select 
+                                      value={selectedOrder.status} 
+                                      onValueChange={(value) => updateOrderStatus(selectedOrder.id, value as any)}
+                                    >
                                       <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
                                         <SelectValue />
                                       </SelectTrigger>
@@ -363,17 +413,26 @@ const Admin = () => {
                                       </SelectContent>
                                     </Select>
                                   </div>
-
+                                  
                                   <div>
                                     <Label className="text-white">Notes</Label>
-                                    <Textarea value={selectedOrder.notes || ''} onChange={(e) => updateOrderNotes(selectedOrder.id, e.target.value)} placeholder="Add notes about this order..." className="bg-gray-800 border-gray-700 text-white" />
+                                    <Textarea
+                                      value={selectedOrder.notes || ''}
+                                      onChange={(e) => updateOrderNotes(selectedOrder.id, e.target.value)}
+                                      placeholder="Add notes about this order..."
+                                      className="bg-gray-800 border-gray-700 text-white"
+                                    />
                                   </div>
                                 </div>
                               )}
                             </DialogContent>
                           </Dialog>
-
-                          <Button size="sm" variant="destructive" onClick={() => deleteOrder(order.id)}>
+                          
+                          <Button 
+                            size="sm" 
+                            variant="destructive"
+                            onClick={() => deleteOrder(order.id)}
+                          >
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
@@ -382,9 +441,11 @@ const Admin = () => {
                   ))}
                 </tbody>
               </table>
-
+              
               {filteredOrders.length === 0 && (
-                <div className="text-center py-8 text-gray-400">No orders found matching your criteria.</div>
+                <div className="text-center py-8 text-gray-400">
+                  No orders found matching your criteria.
+                </div>
               )}
             </div>
           </CardContent>
