@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Upload, CreditCard, Wallet, Building, Check } from 'lucide-react';
+import { ArrowLeft, CreditCard, Wallet, Building, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -10,8 +10,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
 import { toast } from '@/components/ui/use-toast';
-
-// --- Supabase import ---
 import { supabase } from '@/lib/supabaseClient';
 
 const services = {
@@ -140,8 +138,15 @@ const Order = () => {
       setSelectedService('');
       setSelectedPackage('');
       setPaymentMethod('');
-      setFormData({ projectTitle: '', requirements: '', timeline: '', name: '', email: '', phone: '', company: '' });
-
+      setFormData({
+        projectTitle: '',
+        requirements: '',
+        timeline: '',
+        name: '',
+        email: '',
+        phone: '',
+        company: ''
+      });
     } catch (error) {
       console.error(error);
       toast({ title: "Error", description: "Failed to submit order. Please try again.", variant: "destructive" });
@@ -165,9 +170,8 @@ const Order = () => {
       <div className="container mx-auto px-4 py-8">
         <form onSubmit={handleSubmit}>
           <div className="grid lg:grid-cols-3 gap-8">
-            {/* Main Form */}
             <div className="lg:col-span-2 space-y-6">
-              {/* --- Service Selection --- */}
+              {/* === Service Selection === */}
               <Card className="bg-gray-900 border-gray-800">
                 <CardHeader>
                   <CardTitle className="text-white">Select Service *</CardTitle>
@@ -187,7 +191,7 @@ const Order = () => {
                 </CardContent>
               </Card>
 
-              {/* --- Package Selection --- */}
+              {/* === Package Selection === */}
               {selectedServiceData && (
                 <Card className="bg-gray-900 border-gray-800">
                   <CardHeader>
@@ -198,7 +202,7 @@ const Order = () => {
                     <RadioGroup value={selectedPackage} onValueChange={setSelectedPackage}>
                       {selectedServiceData.packages.map((pkg) => (
                         <div key={pkg.id} className="border border-gray-700 rounded-lg p-4 mb-3">
-                          <div className="flex items-center space-x-2 mb-2">
+                          <div className="flex items-center space-x-2 mb-3">
                             <RadioGroupItem value={pkg.id} id={pkg.id} />
                             <Label htmlFor={pkg.id} className="text-white font-semibold">
                               {pkg.name} - ${pkg.price}
@@ -219,7 +223,7 @@ const Order = () => {
                 </Card>
               )}
 
-              {/* --- Project Details --- */}
+              {/* === Project Details === */}
               <Card className="bg-gray-900 border-gray-800">
                 <CardHeader>
                   <CardTitle className="text-white">Project Details</CardTitle>
@@ -242,7 +246,7 @@ const Order = () => {
                       id="requirements"
                       value={formData.requirements}
                       onChange={(e) => handleInputChange('requirements', e.target.value)}
-                      placeholder="Describe your project requirements, goals, and any specific details..."
+                      placeholder="Describe your project requirements..."
                       rows={4}
                       className="bg-gray-800 border-gray-700 text-white"
                     />
@@ -262,20 +266,10 @@ const Order = () => {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div>
-                    <Label className="text-white">Reference Files (Optional)</Label>
-                    <div className="mt-2 border-2 border-dashed border-gray-700 rounded-lg p-6 text-center">
-                      <Upload className="mx-auto h-8 w-8 text-gray-400 mb-2" />
-                      <p className="text-sm text-gray-400">
-                        Drop files here or <span className="text-yellow-400 cursor-pointer">browse</span>
-                      </p>
-                      <p className="text-xs text-gray-500 mt-1">PNG, JPG, PDF up to 10MB</p>
-                    </div>
-                  </div>
                 </CardContent>
               </Card>
 
-              {/* --- Contact Info --- */}
+              {/* === Contact Info === */}
               <Card className="bg-gray-900 border-gray-800">
                 <CardHeader>
                   <CardTitle className="text-white">Contact Information</CardTitle>
@@ -328,7 +322,7 @@ const Order = () => {
                 </CardContent>
               </Card>
 
-              {/* --- Payment Method --- */}
+              {/* === Payment Method === */}
               <Card className="bg-gray-900 border-gray-800">
                 <CardHeader>
                   <CardTitle className="text-white">Payment Method *</CardTitle>
@@ -356,7 +350,7 @@ const Order = () => {
               </Card>
             </div>
 
-            {/* --- Order Summary Sidebar --- */}
+            {/* === Order Summary Sidebar === */}
             <div className="lg:col-span-1">
               <Card className="bg-gray-900 border-gray-800 sticky top-6">
                 <CardHeader>
@@ -370,41 +364,17 @@ const Order = () => {
                         <p className="text-sm text-gray-400">{selectedPackageData.name}</p>
                       </div>
                       <Separator className="bg-gray-700" />
-                      <div className="space-y-2">
-                        <h4 className="font-medium text-white">Included:</h4>
-                        {selectedPackageData.features.map((feature, index) => (
-                          <div key={index} className="flex items-center text-sm">
-                            <Check className="h-3 w-3 text-yellow-400 mr-2" />
-                            <span className="text-gray-300">{feature}</span>
-                          </div>
-                        ))}
+                      <div className="flex justify-between text-white font-semibold">
+                        <span>Total Price:</span>
+                        <span>${selectedPackageData.price}</span>
                       </div>
-                      <Separator className="bg-gray-700" />
-                      <div className="flex justify-between items-center">
-                        <span className="text-white">Subtotal:</span>
-                        <span className="text-white">${selectedPackageData.price}</span>
-                      </div>
-                      <div className="flex justify-between items-center font-bold text-lg">
-                        <span className="text-white">Total:</span>
-                        <span className="text-yellow-400">${selectedPackageData.price}</span>
-                      </div>
-                      <Button 
-                        type="submit"
-                        className="w-full bg-yellow-400 text-black hover:bg-yellow-500 font-semibold"
-                        disabled={!selectedService || !selectedPackage || !paymentMethod || isSubmitting}
-                      >
-                        {isSubmitting ? 'Submitting...' : 'Place Order'}
+                      <Button type="submit" className="w-full" disabled={isSubmitting}>
+                        {isSubmitting ? 'Submitting...' : 'Submit Order'}
                       </Button>
                     </>
                   ) : (
-                    <p className="text-gray-400 text-center py-8">
-                      Select a service and package to see order summary
-                    </p>
+                    <p className="text-gray-400">Select a service and package to see the summary.</p>
                   )}
-                  <div className="text-xs text-gray-500 text-center mt-4">
-                    <p>Secure payment processing</p>
-                    <p>30-day satisfaction guarantee</p>
-                  </div>
                 </CardContent>
               </Card>
             </div>
